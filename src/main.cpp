@@ -4,6 +4,5 @@
 
 int main() {
   System system;
-  // NCursesDisplay::Display(system);
-  std::cout << system.MemoryUtilization() << std::endl;
+  NCursesDisplay::Display(system);
 }
