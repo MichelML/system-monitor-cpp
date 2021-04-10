@@ -68,7 +68,6 @@ vector<int> LinuxParser::Pids() {
 }
 
 float LinuxParser::MemoryUtilization() {
-  // equation based on https://stackoverflow.com/a/41251290
   string line;
   std::ifstream filestream(kProcDirectory + kMeminfoFilename);
   float total_mem = -1;
@@ -92,6 +91,7 @@ float LinuxParser::MemoryUtilization() {
     }
   }
 
+  // equation based on https://stackoverflow.com/a/41251290
   return total_mem - free_mem;
 }
 
