@@ -3,6 +3,5 @@
 
 int main() {
   System system;
-  system.Cpu();
   NCursesDisplay::Display(system);
 }
