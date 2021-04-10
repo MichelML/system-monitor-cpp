@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "iostream"
+
 using std::stof;
 using std::string;
 using std::to_string;
@@ -96,7 +98,24 @@ float LinuxParser::MemoryUtilization() {
 }
 
 // TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+long LinuxParser::UpTime() {
+  string line;
+  std::ifstream filestream(kProcDirectory + kUptimeFilename);
+  long int uptime = -1;
+
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      string uptime_str = line.substr(0, line.find(" "));
+      uptime = std::stoll(uptime_str);
+
+      if (uptime != -1) {
+        break;
+      }
+    }
+  }
+
+  return uptime;
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
