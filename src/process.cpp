@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <cctype>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -31,7 +32,29 @@ string Process::Command() {
 }
 
 // TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+string Process::Ram() {
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid_) +
+                           LinuxParser::kStatusFilename);
+  std::ifstream passwdstream(LinuxParser::kPasswordPath);
+  std::string line;
+  std::smatch match;
+  std::regex rule("VmSize:\\s+([0-9]+)");
+  float memoryInMb;
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (regex_search(line, match, rule)) {
+        // ignore first match as it's full string
+        memoryInMb = std::stof(match[1]) / 1000;
+        break;
+      }
+    }
+  }
+
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(2) << memoryInMb;
+
+  return stream.str() + "MB";
+}
 
 // TODO: Return the user (name) that generated this process
 string Process::User() {
