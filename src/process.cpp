@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <cctype>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -33,7 +34,38 @@ string Process::Command() {
 string Process::Ram() { return string(); }
 
 // TODO: Return the user (name) that generated this process
-string Process::User() { return string(); }
+string Process::User() {
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid_) +
+                           LinuxParser::kStatusFilename);
+  std::ifstream passwdstream(LinuxParser::kPasswordPath);
+  std::string line;
+  std::smatch match;
+  std::regex rule("Uid:\\s+([0-9]+)");
+  int uid;
+  std::string username;
+
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (regex_search(line, match, rule)) {
+        // ignore first match as it's full string
+        uid = std::stoi(match[1]);
+        break;
+      }
+    }
+  }
+
+  std::regex usernameLine("([^:]+):[^:]+:" + to_string(uid) + ":");
+  if (passwdstream.is_open()) {
+    while (std::getline(passwdstream, line)) {
+      if (regex_search(line, match, usernameLine)) {
+        // ignore first match as it's full string
+        username = match[1];
+        break;
+      }
+    }
+  }
+  return username;
+}
 
 // TODO: Return the age of this process (in seconds)
 long int Process::UpTime() { return 0; }
