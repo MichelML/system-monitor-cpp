@@ -92,7 +92,7 @@ float LinuxParser::MemoryUtilization() {
   }
 
   // equation based on https://stackoverflow.com/a/41251290
-  return total_mem - free_mem;
+  return (total_mem - free_mem) / total_mem;
 }
 
 long LinuxParser::UpTime() {
