@@ -31,7 +31,6 @@ string Process::Command() {
   }
 }
 
-// TODO: Return this process's memory utilization
 string Process::Ram() {
   std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid_) +
                            LinuxParser::kStatusFilename);
