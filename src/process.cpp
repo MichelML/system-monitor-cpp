@@ -26,10 +26,10 @@ string Process::Command() {
   std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid_) +
                            LinuxParser::kCmdlineFilename);
   if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
-      return line;
-    }
+    std::getline(filestream, line);
   }
+
+  return line;
 }
 
 string Process::Ram() {
