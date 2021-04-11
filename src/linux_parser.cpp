@@ -78,12 +78,10 @@ float LinuxParser::MemoryUtilization() {
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       if (line.find("MemTotal:") != std::string::npos) {
-        string total_mem_str =
-            std::regex_replace(line, std::regex(R"([\D])"), "");
+        string total_mem_str = std::regex_replace(line, nonDigitsRegexp, "");
         total_mem = std::stof(total_mem_str);
       } else if (line.find("MemFree:") != std::string::npos) {
-        string free_mem_str =
-            std::regex_replace(line, std::regex(R"([\D])"), "");
+        string free_mem_str = std::regex_replace(line, nonDigitsRegexp, "");
         free_mem = std::stof(free_mem_str);
       }
 
@@ -132,11 +130,48 @@ long LinuxParser::IdleJiffies() { return 0; }
 // TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 
-// TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+int LinuxParser::TotalProcesses() {
+  string line;
+  std::ifstream filestream(kProcDirectory + kStatFilename);
+  int total_processes = -1;
+
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (line.find("processes ") != std::string::npos) {
+        string total_processes_str =
+            std::regex_replace(line, nonDigitsRegexp, "");
+        total_processes = std::stoi(total_processes_str);
+      }
+
+      if (total_processes != -1) {
+        break;
+      }
+    }
+  }
+  return total_processes;
+}
 
 // TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+int LinuxParser::RunningProcesses() {
+  string line;
+  std::ifstream filestream(kProcDirectory + kStatFilename);
+  int running_processes = -1;
+
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (line.find("procs_running ") != std::string::npos) {
+        string running_processes_str =
+            std::regex_replace(line, nonDigitsRegexp, "");
+        running_processes = std::stoi(running_processes_str);
+      }
+
+      if (running_processes != -1) {
+        break;
+      }
+    }
+  }
+  return running_processes;
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
