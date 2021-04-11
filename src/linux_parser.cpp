@@ -151,7 +151,6 @@ int LinuxParser::TotalProcesses() {
   return total_processes;
 }
 
-// TODO: Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   string line;
   std::ifstream filestream(kProcDirectory + kStatFilename);
