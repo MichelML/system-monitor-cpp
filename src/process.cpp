@@ -1,5 +1,6 @@
 #include "process.h"
 
+#include <linux_parser.h>
 #include <unistd.h>
 
 #include <cctype>
@@ -18,8 +19,16 @@ int Process::Pid() { return pid_; }
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() { return 0; }
 
-// TODO: Return the command that generated this process
-string Process::Command() { return string(); }
+string Process::Command() {
+  string line;
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid_) +
+                           LinuxParser::kCmdlineFilename);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      return line;
+    }
+  }
+}
 
 // TODO: Return this process's memory utilization
 string Process::Ram() { return string(); }
