@@ -98,7 +98,7 @@ float LinuxParser::MemoryUtilization() {
 long LinuxParser::UpTime() {
   string line;
   std::ifstream filestream(kProcDirectory + kUptimeFilename);
-  long int uptime = -1;
+  long uptime = -1;
 
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {

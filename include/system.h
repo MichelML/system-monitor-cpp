@@ -13,7 +13,7 @@ class System {
   Processor& Cpu();
   std::vector<Process>& Processes();
   float MemoryUtilization();
-  long int UpTime();
+  long UpTime();
   int TotalProcesses();
   int RunningProcesses();
   std::string Kernel();
