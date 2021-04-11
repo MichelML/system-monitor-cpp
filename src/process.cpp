@@ -114,8 +114,8 @@ long int Process::UpTime() {
   return uptimeInSeconds;
 }
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a [[maybe_unused]]) const {
-  return true;
+bool Process::operator<(Process const& a) const {
+  long currentRam = std::stol(LinuxParser::Ram(this->pid_));
+  long otherRam = std::stol(LinuxParser::Ram(a.pid_));
+  return currentRam < otherRam;
 }
