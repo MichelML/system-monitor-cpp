@@ -104,7 +104,6 @@ long LinuxParser::UpTime() {
     while (std::getline(filestream, line)) {
       string uptime_str = line.substr(0, line.find(" "));
       uptime = std::stol(uptime_str);
-      std::cout << uptime << std::endl;
       if (uptime != -1) {
         break;
       }
