@@ -97,13 +97,11 @@ long int Process::UpTime() {
   long int uptimeInSeconds;
 
   if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
-      std::stringstream ss(line);
-      std::istream_iterator<std::string> begin(ss);
-      std::istream_iterator<std::string> end;
-      vstrings = std::vector<std::string>(begin, end);
-      break;
-    }
+    std::getline(filestream, line);
+    std::stringstream ss(line);
+    std::istream_iterator<std::string> begin(ss);
+    std::istream_iterator<std::string> end;
+    vstrings = std::vector<std::string>(begin, end);
   }
 
   // convert clock ticks to seconds
