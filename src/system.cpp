@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cstddef>
+#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -21,11 +22,18 @@ System::System() {
   kernel_ = LinuxParser::Kernel();
   cpu_ = Processor();
 }
-// TODO: Return the system's CPU
 Processor& System::Cpu() { return cpu_; }
 
-// TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+  vector<int> pids = LinuxParser::Pids();
+  processes_.clear();
+  for (int pid : pids) {
+    Process proc = Process(pid);
+    processes_.push_back(proc);
+  }
+
+  return processes_;
+}
 
 std::string System::Kernel() { return kernel_; }
 

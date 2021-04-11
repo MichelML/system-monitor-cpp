@@ -11,9 +11,7 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-Process::Process(int pid) {
-  pid_ = pid;
-}
+Process::Process(int pid) { pid_ = pid; }
 
 int Process::Pid() { return pid_; }
 
