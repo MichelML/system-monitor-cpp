@@ -15,8 +15,9 @@ float Processor::Utilization() {
   std::smatch match;
   std::regex rule(
       "cpu  "
-      "(\\d+)\\s(\\d+)\\s(\\d+)\\s(\\d+)\\s(\\d+)\\s(\\d+)\\s(\\d+)\\s(\\d+)"
-      "\\s(\\d+)\\s(\\d+)");
+      "([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]"
+      "+)\\s([0-9]+)"
+      "\\s([0-9]+)\\s([0-9]+)");
 
   prevusertime = usertime;
   prevnicetime = nicetime;
@@ -30,17 +31,18 @@ float Processor::Utilization() {
 
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
-      if (regex_match(line, match, rule)) {
-        usertime = std::stol(match[0]);
-        nicetime = std::stol(match[1]);
-        systemtime = std::stol(match[2]);
-        idletime = std::stol(match[3]);
-        ioWait = std::stol(match[4]);
-        irq = std::stol(match[5]);
-        softIrq = std::stol(match[6]);
-        steal = std::stol(match[7]);
-        guest = std::stol(match[8]);
-        guestnice = std::stol(match[9]);
+      if (regex_search(line, match, rule)) {
+        // ignore first match as it's full string
+        usertime = std::stol(match[1]);
+        nicetime = std::stol(match[2]);
+        systemtime = std::stol(match[3]);
+        idletime = std::stol(match[4]);
+        ioWait = std::stol(match[5]);
+        irq = std::stol(match[6]);
+        softIrq = std::stol(match[7]);
+        steal = std::stol(match[8]);
+        guest = std::stol(match[9]);
+        guestnice = std::stol(match[10]);
       }
       if (lineN == 0) {
         break;
@@ -59,10 +61,10 @@ float Processor::Utilization() {
   long int PrevTotal = PrevIdle + PrevNonIdle;
   long int Total = Idle + NonIdle;
 
-  // differentiate: actual value minus the previous one
-  long int totald = Total - PrevTotal;
-  long int idled = Idle - PrevIdle;
+  // // differentiate: actual value minus the previous one
+  float totald = Total - PrevTotal;
+  float idled = Idle - PrevIdle;
 
-  long int CPU_Percentage = (totald - idled) / totald;
+  float CPU_Percentage = (totald - idled) / totald;
   return CPU_Percentage;
 }
