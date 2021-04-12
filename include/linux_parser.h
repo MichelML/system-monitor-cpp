@@ -28,29 +28,6 @@ int RunningProcesses();
 std::string OperatingSystem();
 std::string Kernel();
 
-// CPU
-static long int prevusertime = 0;
-static long int prevnicetime = 0;
-static long int prevsystemtime = 0;
-static long int previdletime = 0;
-static long int previoWait = 0;
-static long int previrq = 0;
-static long int prevsoftIrq = 0;
-static long int prevsteal = 0;
-static long int prevguest = 0;
-static long int prevguestnice = 0;
-
-static long int usertime = 0;
-static long int nicetime = 0;
-static long int systemtime = 0;
-static long int idletime = 0;
-static long int ioWait = 0;
-static long int irq = 0;
-static long int softIrq = 0;
-static long int steal = 0;
-static long int guest = 0;
-static long int guestnice = 0;
-
 float CpuUtilization();
 long Jiffies();
 long ActiveJiffies();

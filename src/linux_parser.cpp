@@ -13,6 +13,16 @@ using std::string;
 using std::to_string;
 using std::vector;
 
+long int usertime;
+long int nicetime;
+long int systemtime;
+long int idletime;
+long int ioWait;
+long int irq;
+long int softIrq;
+long int steal;
+long int guest;
+
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
@@ -135,15 +145,14 @@ float LinuxParser::CpuUtilization() {
       "+)\\s([0-9]+)"
       "\\s([0-9]+)\\s([0-9]+)");
 
-  prevusertime = usertime;
-  prevnicetime = nicetime;
-  prevsystemtime = systemtime;
-  previdletime = idletime;
-  previoWait = ioWait;
-  previrq = irq;
-  prevsoftIrq = softIrq;
-  prevsteal = steal;
-  prevguest = guest;
+  long int prevusertime = (usertime) ? usertime : 0;
+  long int prevnicetime = (nicetime) ? nicetime : 0;
+  long int prevsystemtime = (systemtime) ? systemtime : 0;
+  long int previdletime = (idletime) ? idletime : 0;
+  long int previoWait = (ioWait) ? ioWait : 0;
+  long int previrq = (irq) ? irq : 0;
+  long int prevsoftIrq = (softIrq) ? softIrq : 0;
+  long int prevsteal = (steal) ? steal : 0;
 
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -157,8 +166,6 @@ float LinuxParser::CpuUtilization() {
         irq = std::stol(match[6]);
         softIrq = std::stol(match[7]);
         steal = std::stol(match[8]);
-        guest = std::stol(match[9]);
-        guestnice = std::stol(match[10]);
       }
       if (lineN == 0) {
         break;
