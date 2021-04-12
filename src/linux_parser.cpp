@@ -359,7 +359,7 @@ long LinuxParser::UpTime(int pid) {
   // convert clock ticks to seconds
   // take #22 starttime %llu
   // http://man7.org/linux/man-pages/man5/proc.5.html
-  starttime = std::stol(vstrings[21]) / sysconf(_SC_CLK_TCK);
-  seconds = LinuxParser::UpTime() - (starttime / sysconf(_SC_CLK_TCK));
+  starttime = std::stol(vstrings[21]);
+  seconds = starttime / sysconf(_SC_CLK_TCK);
   return seconds;
 }
