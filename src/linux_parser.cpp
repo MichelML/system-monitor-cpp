@@ -3,10 +3,10 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <iomanip>
+#include <iostream>
 #include <string>
 #include <vector>
-
-#include "iostream"
 
 using std::stof;
 using std::string;
@@ -126,8 +126,90 @@ long LinuxParser::ActiveJiffies() { return 0; }
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() { return 0; }
 
-// TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+float LinuxParser::CpuUtilization() {
+  std::ifstream filestream(LinuxParser::kProcDirectory +
+                           LinuxParser::kStatFilename);
+  std::string line;
+  int lineN = 0;
+  std::smatch match;
+  std::regex rule(
+      "cpu  "
+      "([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]+)\\s([0-9]"
+      "+)\\s([0-9]+)"
+      "\\s([0-9]+)\\s([0-9]+)");
+
+  prevusertime = usertime;
+  prevnicetime = nicetime;
+  prevsystemtime = systemtime;
+  previdletime = idletime;
+  previoWait = ioWait;
+  previrq = irq;
+  prevsoftIrq = softIrq;
+  prevsteal = steal;
+  prevguest = guest;
+
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (regex_search(line, match, rule)) {
+        // ignore first match as it's full string
+        usertime = std::stol(match[1]);
+        nicetime = std::stol(match[2]);
+        systemtime = std::stol(match[3]);
+        idletime = std::stol(match[4]);
+        ioWait = std::stol(match[5]);
+        irq = std::stol(match[6]);
+        softIrq = std::stol(match[7]);
+        steal = std::stol(match[8]);
+        guest = std::stol(match[9]);
+        guestnice = std::stol(match[10]);
+      }
+      if (lineN == 0) {
+        break;
+      }
+    }
+  }
+
+  // from https://stackoverflow.com/a/23376195
+  long int PrevIdle = previdletime + previoWait;
+  long int Idle = idletime + ioWait;
+
+  long int PrevNonIdle = prevusertime + prevnicetime + prevsystemtime +
+                         previrq + prevsoftIrq + prevsteal;
+  long int NonIdle = usertime + nicetime + systemtime + irq + softIrq + steal;
+
+  long int PrevTotal = PrevIdle + PrevNonIdle;
+  long int Total = Idle + NonIdle;
+
+  // // differentiate: actual value minus the previous one
+  float totald = Total - PrevTotal;
+  float idled = Idle - PrevIdle;
+
+  float CPU_Percentage = (totald - idled) / totald;
+  return CPU_Percentage;
+}
+
+float LinuxParser::CpuUtilization(int pid) {
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid) +
+                           LinuxParser::kStatFilename);
+  std::string line;
+  std::vector<std::string> vstrings;
+  long uptimeInSeconds;
+
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+    std::stringstream ss(line);
+    std::istream_iterator<std::string> begin(ss);
+    std::istream_iterator<std::string> end;
+    vstrings = std::vector<std::string>(begin, end);
+  }
+
+  // convert clock ticks to seconds
+  // take #22 starttime %llu
+  // http://man7.org/linux/man-pages/man5/proc.5.html
+  uptimeInSeconds = std::stol(vstrings[21]) / sysconf(_SC_CLK_TCK);
+
+  return uptimeInSeconds;
+}
 
 int LinuxParser::TotalProcesses() {
   string line;
@@ -171,22 +253,101 @@ int LinuxParser::RunningProcesses() {
   return running_processes;
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  string line;
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid) +
+                           LinuxParser::kCmdlineFilename);
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+  }
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+  return line;
+}
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid) +
+                           LinuxParser::kStatusFilename);
+  std::string line;
+  std::smatch match;
+  std::regex rule("VmSize:\\s+([0-9]+)");
+  float memoryInMb;
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid [[maybe_unused]]) { return string(); }
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (regex_search(line, match, rule)) {
+        // ignore first match as it's full string
+        memoryInMb = std::stof(match[1]) / 1000;
+        break;
+      }
+    }
+  }
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(2) << memoryInMb;
+
+  return stream.str() + "MB";
+}
+
+string LinuxParser::Uid(int pid) {
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid) +
+                           LinuxParser::kStatusFilename);
+  std::string line;
+  std::smatch match;
+  std::regex rule("Uid:\\s+([0-9]+)");
+  string uid;
+
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      if (regex_search(line, match, rule)) {
+        // ignore first match as it's full string
+        uid = match[1];
+        break;
+      }
+    }
+  }
+
+  return uid;
+}
+
+string LinuxParser::User(int pid) {
+  std::ifstream passwdstream(LinuxParser::kPasswordPath);
+  std::string line;
+  std::smatch match;
+  std::string username;
+  string uid = LinuxParser::Uid(pid);
+  std::regex usernameLine("([^:]+):[^:]+:" + uid + ":");
+
+  if (passwdstream.is_open()) {
+    while (std::getline(passwdstream, line)) {
+      if (regex_search(line, match, usernameLine)) {
+        // ignore first match as it's full string
+        username = match[1];
+        break;
+      }
+    }
+  }
+  return username;
+}
+
+long LinuxParser::UpTime(int pid) {
+  std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid) +
+                           LinuxParser::kStatFilename);
+  std::string line;
+  std::vector<std::string> vstrings;
+  long uptimeInSeconds;
+
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+    std::stringstream ss(line);
+    std::istream_iterator<std::string> begin(ss);
+    std::istream_iterator<std::string> end;
+    vstrings = std::vector<std::string>(begin, end);
+  }
+
+  // convert clock ticks to seconds
+  // take #22 starttime %llu
+  // http://man7.org/linux/man-pages/man5/proc.5.html
+  uptimeInSeconds = std::stol(vstrings[21]) / sysconf(_SC_CLK_TCK);
+
+  return uptimeInSeconds;
+}
