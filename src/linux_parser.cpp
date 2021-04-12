@@ -307,7 +307,7 @@ string LinuxParser::Ram(int pid) {
   std::stringstream stream;
   stream << std::fixed << std::setprecision(2) << memoryInMb;
 
-  return stream.str() + "MB";
+  return stream.str();
 }
 
 string LinuxParser::Uid(int pid) {
