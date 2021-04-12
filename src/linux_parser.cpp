@@ -296,7 +296,7 @@ string LinuxParser::Ram(int pid) {
     while (std::getline(filestream, line)) {
       if (regex_search(line, match, rule)) {
         // ignore first match as it's full string
-        memoryInMb = std::stof(match[1]) / 1000;
+        memoryInMb = std::stof(match[1]) / 1024;
         break;
       }
     }
