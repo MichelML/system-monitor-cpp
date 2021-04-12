@@ -33,6 +33,9 @@ string LinuxParser::OperatingSystem() {
       }
     }
   }
+
+  filestream.close();
+
   return value;
 }
 
@@ -46,6 +49,9 @@ string LinuxParser::Kernel() {
     std::istringstream linestream(line);
     linestream >> os >> version >> kernel;
   }
+
+  stream.close();
+
   return kernel;
 }
 
@@ -91,6 +97,8 @@ float LinuxParser::MemoryUtilization() {
     }
   }
 
+  filestream.close();
+
   // equation based on https://stackoverflow.com/a/41251290
   return (total_mem - free_mem) / total_mem;
 }
@@ -110,21 +118,10 @@ long LinuxParser::UpTime() {
     }
   }
 
+  filestream.close();
+
   return uptime;
 }
-
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
-
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid [[maybe_unused]]) { return 0; }
-
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
-
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
 
 float LinuxParser::CpuUtilization() {
   std::ifstream filestream(LinuxParser::kProcDirectory +
@@ -169,6 +166,8 @@ float LinuxParser::CpuUtilization() {
     }
   }
 
+  filestream.close();
+
   // from https://stackoverflow.com/a/23376195
   long int PrevIdle = previdletime + previoWait;
   long int Idle = idletime + ioWait;
@@ -209,6 +208,8 @@ float LinuxParser::CpuUtilization(int pid) {
     vstrings = std::vector<std::string>(begin, end);
   }
 
+  filestream.close();
+
   utime = std::stol(vstrings[13]);
   stime = std::stol(vstrings[14]);
   cutime = std::stol(vstrings[15]);
@@ -240,6 +241,9 @@ int LinuxParser::TotalProcesses() {
       }
     }
   }
+
+  filestream.close();
+
   return total_processes;
 }
 
@@ -261,6 +265,9 @@ int LinuxParser::RunningProcesses() {
       }
     }
   }
+
+  filestream.close();
+
   return running_processes;
 }
 
@@ -271,6 +278,8 @@ string LinuxParser::Command(int pid) {
   if (filestream.is_open()) {
     std::getline(filestream, line);
   }
+
+  filestream.close();
 
   return line;
 }
@@ -292,6 +301,8 @@ string LinuxParser::Ram(int pid) {
       }
     }
   }
+
+  filestream.close();
 
   std::stringstream stream;
   stream << std::fixed << std::setprecision(2) << memoryInMb;
@@ -317,6 +328,8 @@ string LinuxParser::Uid(int pid) {
     }
   }
 
+  filestream.close();
+
   return uid;
 }
 
@@ -337,6 +350,9 @@ string LinuxParser::User(int pid) {
       }
     }
   }
+
+  passwdstream.close();
+
   return username;
 }
 
@@ -355,6 +371,8 @@ long LinuxParser::UpTime(int pid) {
     std::istream_iterator<std::string> end;
     vstrings = std::vector<std::string>(begin, end);
   }
+
+  filestream.close();
 
   // convert clock ticks to seconds
   // take #22 starttime %llu
