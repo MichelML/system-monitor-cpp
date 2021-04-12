@@ -21,7 +21,6 @@ long int ioWait;
 long int irq;
 long int softIrq;
 long int steal;
-long int guest;
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
