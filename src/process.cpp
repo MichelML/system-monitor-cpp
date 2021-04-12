@@ -18,7 +18,7 @@ Process::Process(int pid) { pid_ = pid; }
 
 int Process::Pid() { return pid_; }
 
-float Process::CpuUtilization() {}
+float Process::CpuUtilization() { return LinuxParser::CpuUtilization(pid_); }
 
 string Process::Command() { return LinuxParser::Command(pid_); }
 
@@ -30,6 +30,6 @@ long int Process::UpTime() { return LinuxParser::UpTime(pid_); }
 
 bool Process::operator<(Process const& a) const {
   long currentRam = LinuxParser::CpuUtilization(pid_);
-  long otherRam = a.Ram();
+  long otherRam = LinuxParser::CpuUtilization(a.pid_);
   return currentRam < otherRam;
 }

@@ -180,7 +180,7 @@ float LinuxParser::CpuUtilization() {
   long int PrevTotal = PrevIdle + PrevNonIdle;
   long int Total = Idle + NonIdle;
 
-  // // differentiate: actual value minus the previous one
+  // differentiate: actual value minus the previous one
   float totald = Total - PrevTotal;
   float idled = Idle - PrevIdle;
 
@@ -189,11 +189,17 @@ float LinuxParser::CpuUtilization() {
 }
 
 float LinuxParser::CpuUtilization(int pid) {
+  // see https://stackoverflow.com/a/16736599
+  // for calculation explanation
   std::ifstream filestream(LinuxParser::kProcDirectory + std::to_string(pid) +
                            LinuxParser::kStatFilename);
   std::string line;
   std::vector<std::string> vstrings;
-  long uptimeInSeconds;
+  long utime;
+  long stime;
+  long cutime;
+  long cstime;
+  long starttime;
 
   if (filestream.is_open()) {
     std::getline(filestream, line);
@@ -203,12 +209,17 @@ float LinuxParser::CpuUtilization(int pid) {
     vstrings = std::vector<std::string>(begin, end);
   }
 
-  // convert clock ticks to seconds
-  // take #22 starttime %llu
-  // http://man7.org/linux/man-pages/man5/proc.5.html
-  uptimeInSeconds = std::stol(vstrings[21]) / sysconf(_SC_CLK_TCK);
+  utime = std::stol(vstrings[13]);
+  stime = std::stol(vstrings[14]);
+  cutime = std::stol(vstrings[15]);
+  cstime = std::stol(vstrings[16]);
+  starttime = std::stol(vstrings[21]);
 
-  return uptimeInSeconds;
+  long total_time = utime + stime + cutime + cstime;
+  long seconds = LinuxParser::UpTime() - (starttime / sysconf(_SC_CLK_TCK));
+  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / seconds);
+
+  return cpu_usage;
 }
 
 int LinuxParser::TotalProcesses() {
@@ -334,7 +345,8 @@ long LinuxParser::UpTime(int pid) {
                            LinuxParser::kStatFilename);
   std::string line;
   std::vector<std::string> vstrings;
-  long uptimeInSeconds;
+  long starttime;
+  long seconds;
 
   if (filestream.is_open()) {
     std::getline(filestream, line);
@@ -347,7 +359,7 @@ long LinuxParser::UpTime(int pid) {
   // convert clock ticks to seconds
   // take #22 starttime %llu
   // http://man7.org/linux/man-pages/man5/proc.5.html
-  uptimeInSeconds = std::stol(vstrings[21]) / sysconf(_SC_CLK_TCK);
-
-  return uptimeInSeconds;
+  starttime = std::stol(vstrings[21]) / sysconf(_SC_CLK_TCK);
+  seconds = LinuxParser::UpTime() - (starttime / sysconf(_SC_CLK_TCK));
+  return seconds;
 }
